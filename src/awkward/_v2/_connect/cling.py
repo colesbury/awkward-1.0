@@ -159,9 +159,16 @@ class Generator:
     }}
 """.strip()
 
-    def entry(self, length="length", ptrs="ptrs", flatlist_as_rvec=False):
+    def dataset(self, length="length", ptrs="ptrs", flatlist_as_rvec=False):
         key = (self, flatlist_as_rvec)
         return f"awkward::{self.class_type(key[1:])}(0, {length}, 0, {ptrs})"
+
+    def entry_type(self, flatlist_as_rvec=False):
+        key = (self, flatlist_as_rvec)
+        return self.value_type(key[1:])
+
+    def entry(self, length="length", ptrs="ptrs", entry="i", flatlist_as_rvec=False):
+        return f"{self.dataset(length=length, ptrs=ptrs, flatlist_as_rvec=flatlist_as_rvec)}[{entry}]"
 
 
 class NumpyArrayGenerator(Generator, ak._v2._lookup.NumpyLookup):
