@@ -25,6 +25,31 @@ def generate_ArrayView(compiler, use_cached=True):
     if out is None:
         out = """
 namespace awkward {
+    template<typename T>
+    struct Iterator {
+      using iterator_category = std::forward_iterator_tag;
+      using difference_type   = std::ptrdiff_t;
+      using value_type        = T;
+      using pointer           = T*;  // or also value_type*
+      using reference         = T&;  // or also value_type&
+
+      Iterator(pointer ptr) : ptr_(ptr) {}
+      reference operator*() const { return *ptr_; }
+      pointer operator->() { return ptr_; }
+
+      // Prefix increment
+      Iterator& operator++() { ptr_++; return *this; }
+
+      // Postfix increment
+      Iterator operator++(int) { Iterator tmp = *this; ++(*this); return tmp; }
+
+      friend bool operator== (const Iterator& a, const Iterator& b) { return a.ptr_ == b.ptr_; };
+      friend bool operator!= (const Iterator& a, const Iterator& b) { return a.ptr_ != b.ptr_; };
+
+    private:
+      pointer ptr_;
+    };
+
   class ArrayView {
   public:
     ArrayView(ssize_t start, ssize_t stop, ssize_t which, ssize_t* ptrs)
@@ -37,6 +62,9 @@ namespace awkward {
     bool empty() const noexcept {{
       return start_ == stop_;
     }}
+
+    Iterator<ssize_t> begin() { return Iterator<ssize_t>(&ptrs_[0]); }
+    Iterator<ssize_t> end()   { return Iterator<ssize_t>(&ptrs_[stop_ - start_]); }
 
   protected:
     ssize_t start_;
